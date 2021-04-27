@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import CheckButton from 'react-validation/build/button';
-import AuthService from '../../service/Auth/auth-service';
 import { withRouter } from 'react-router';
-import DevService from '../../service/Developer/DevService';
+import { PublisherService, AuthService } from '../../service';
 
 const required = (value) => {
   if (!value) {
@@ -16,13 +15,16 @@ const required = (value) => {
   }
 };
 
-class DeveloperAdd extends Component {
+class PublisherEdit extends Component {
   constructor(props) {
     super(props);
-    this.handleDevCreate = this.handleDevCreate.bind(this);
+    this.handlePublisherEdit = this.handlePublisherEdit.bind(this);
     this.onChangeName = this.onChangeName.bind(this);
+    this.onChangeDescription = this.onChangeDescription.bind(this);
+    console.log(props);
     this.state = {
-      name: '',
+      name: this.props.publisher.name,
+      description: this.props.publisher.description,
       loading: false,
       message: '',
     };
@@ -30,6 +32,12 @@ class DeveloperAdd extends Component {
   onChangeName(e) {
     this.setState({
       name: e.target.value,
+    });
+  }
+
+  onChangeDescription(e) {
+    this.setState({
+      description: e.target.value,
     });
   }
 
@@ -41,10 +49,10 @@ class DeveloperAdd extends Component {
             <div className={'d-flex justify-content-center'}>
               <div className={'card bg-dark p-5'}>
                 <div>
-                  <h3>Creating a new publisher</h3>
+                  <h3>Editing a publisher</h3>
                 </div>
                 <Form
-                  onSubmit={this.handleDevCreate}
+                  onSubmit={this.handlePublisherEdit}
                   ref={(c) => {
                     this.form = c;
                   }}
@@ -61,6 +69,17 @@ class DeveloperAdd extends Component {
                     />
                   </div>
                   <div className="form-group">
+                    <label htmlFor="description">Description</label>
+                    <Input
+                      type="description"
+                      className="form-control"
+                      name="description"
+                      value={this.state.description}
+                      onChange={this.onChangeDescription}
+                      validations={[required]}
+                    />
+                  </div>
+                  <div className="form-group">
                     <button
                       className="btn btn-primary btn-block"
                       disabled={this.state.loading}
@@ -68,7 +87,7 @@ class DeveloperAdd extends Component {
                       {this.state.loading && (
                         <span className="spinner-border spinner-border-sm"></span>
                       )}
-                      <span>Add</span>
+                      <span>Edit</span>
                     </button>
                   </div>
                   {this.state.message && (
@@ -93,7 +112,7 @@ class DeveloperAdd extends Component {
     );
   }
 
-  handleDevCreate(e) {
+  handlePublisherEdit(e) {
     e.preventDefault();
 
     this.setState({
@@ -105,9 +124,10 @@ class DeveloperAdd extends Component {
 
     if (this.checkBtn.context._errors.length === 0) {
       let user = AuthService.getCurrentUser();
-      DevService.createDev(
-        this.state.name,
+      PublisherService.editPublisher(
         this.props.publisher.id,
+        this.state.name,
+        this.state.description,
         user.username
       ).then(
         () => {
@@ -136,4 +156,4 @@ class DeveloperAdd extends Component {
   }
 }
 
-export default withRouter(DeveloperAdd);
+export default withRouter(PublisherEdit);

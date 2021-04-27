@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Link, NavLink, withRouter } from 'react-router-dom';
 import logo from '../../resources/logo-social-sq.png';
-import { AuthService, GameService, GenreService } from '../../service';
+import { AuthService, GenreService } from '../../service';
 
 class Navigation extends Component {
   constructor(props) {
@@ -37,16 +37,20 @@ class Navigation extends Component {
                   aria-expanded={'false'}
                   aria-label={'Toggle navigation'}
                 >
-                  <span className="navbar-toggler-icon"></span>
+                  <span className={'navbar-toggler-icon'}></span>
                 </button>
                 <div
                   className={'collapse navbar-collapse'}
                   id={'navbarSupportedContent'}
                 >
-                  <ul className={'navbar-nav mr-auto'}>
+                  <ul
+                    className={
+                      'nav-tabs navbar-nav navbar-dark text-dark mr-auto'
+                    }
+                  >
                     <li className={'nav-item'}>
                       <NavLink
-                        activeClassName={'active'}
+                        activeClassName={'active text-dark'}
                         className={'nav-link'}
                         to={'/Store/popular'}
                       >
@@ -55,7 +59,7 @@ class Navigation extends Component {
                     </li>
                     <li className={'nav-item'}>
                       <NavLink
-                        activeClassName={'active'}
+                        activeClassName={'active text-dark'}
                         className={'nav-link'}
                         to={'/library'}
                       >
@@ -64,7 +68,7 @@ class Navigation extends Component {
                     </li>
                     <li className={'nav-item'}>
                       <NavLink
-                        activeClassName={'active'}
+                        activeClassName={'active text-dark'}
                         className={'nav-link'}
                         to={'/publishers'}
                       >
@@ -73,7 +77,7 @@ class Navigation extends Component {
                     </li>
                     <li className={'nav-item'}>
                       <NavLink
-                        activeClassName={'active'}
+                        activeClassName={'active text-dark'}
                         className={'nav-link'}
                         to={'/developers'}
                       >

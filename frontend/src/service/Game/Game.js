@@ -70,6 +70,33 @@ const GameService = {
       }
     );
   },
+
+  editGame: (
+    gameId,
+    username,
+    title,
+    description,
+    price,
+    developerId,
+    publisherId,
+    genres
+  ) => {
+    return axios.put(
+      `/game/edit/${gameId}`,
+      {
+        username,
+        title,
+        description,
+        price,
+        developerId,
+        publisherId,
+        genres,
+      },
+      {
+        headers: authHeader(),
+      }
+    );
+  },
   deleteGame: (gameId) => {
     return axios.delete(`/game/remove/${gameId}`, {
       headers: authHeader(),

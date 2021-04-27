@@ -74,8 +74,7 @@ public class PublisherServiceImplementation  implements PublisherService{
 
     @Override
     public Optional<Publisher> editPublisher(String publisherId, PublisherDto publisherDto) throws UserNotFoundException, PublisherNotFoundException {
-        User user = userRepository.findByUsername(publisherDto.getUsername()).stream().findFirst().orElseThrow(UserNotFoundException::new);
-        Publisher publisher = user.getPublishers().stream().filter(pub -> pub.getId().equals(publisherId)).findFirst().orElseThrow(PublisherNotFoundException::new);
+        Publisher publisher = publisherRepository.findById(publisherId).orElseThrow(PublisherNotFoundException::new);
         publisher.setName(publisherDto.getName());
         publisher.setDescription(publisherDto.getDescription());
         return Optional.of(publisherRepository.save(publisher));

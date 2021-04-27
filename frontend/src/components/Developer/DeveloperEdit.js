@@ -19,10 +19,10 @@ const required = (value) => {
 class DeveloperAdd extends Component {
   constructor(props) {
     super(props);
-    this.handleDevCreate = this.handleDevCreate.bind(this);
+    this.handleDevEdit = this.handleDevEdit.bind(this);
     this.onChangeName = this.onChangeName.bind(this);
     this.state = {
-      name: '',
+      name: this.props.developer.name,
       loading: false,
       message: '',
     };
@@ -41,10 +41,10 @@ class DeveloperAdd extends Component {
             <div className={'d-flex justify-content-center'}>
               <div className={'card bg-dark p-5'}>
                 <div>
-                  <h3>Creating a new publisher</h3>
+                  <h3>Editing a publisher</h3>
                 </div>
                 <Form
-                  onSubmit={this.handleDevCreate}
+                  onSubmit={this.handleDevEdit}
                   ref={(c) => {
                     this.form = c;
                   }}
@@ -68,7 +68,7 @@ class DeveloperAdd extends Component {
                       {this.state.loading && (
                         <span className="spinner-border spinner-border-sm"></span>
                       )}
-                      <span>Add</span>
+                      <span>Edit</span>
                     </button>
                   </div>
                   {this.state.message && (
@@ -93,7 +93,7 @@ class DeveloperAdd extends Component {
     );
   }
 
-  handleDevCreate(e) {
+  handleDevEdit(e) {
     e.preventDefault();
 
     this.setState({
@@ -105,9 +105,11 @@ class DeveloperAdd extends Component {
 
     if (this.checkBtn.context._errors.length === 0) {
       let user = AuthService.getCurrentUser();
-      DevService.createDev(
+
+      DevService.editDev(
+        this.props.developer.id,
         this.state.name,
-        this.props.publisher.id,
+        '',
         user.username
       ).then(
         () => {

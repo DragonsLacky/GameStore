@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -72,6 +73,14 @@ public class GameController {
     @PostMapping("/add")
     public ResponseEntity<Game> addGame(@RequestBody GameDto gameDto) throws PublisherNotFoundException, DeveloperNotFoundException {
         return gameService.addGame(gameDto)
+            .map(game -> ResponseEntity.ok().body(game))
+            .orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+
+    @PreAuthorize("hasRole('PUBLISHER') or hasRole('ADMIN')")
+    @PutMapping("/edit/{gameId}")
+    public ResponseEntity<Game> editGame(@PathVariable String gameId,@RequestBody GameDto gameDto) throws PublisherNotFoundException, DeveloperNotFoundException, GameNotFoundException {
+        return gameService.editGame(gameId,gameDto)
             .map(game -> ResponseEntity.ok().body(game))
             .orElseGet(() -> ResponseEntity.badRequest().build());
     }

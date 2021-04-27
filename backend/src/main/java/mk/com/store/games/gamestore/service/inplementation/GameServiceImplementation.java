@@ -125,4 +125,17 @@ public class GameServiceImplementation implements GameService{
         return gameRepository.findByGenres(Genre.valueOf(genre));
     }
 
+    @Override
+    public Optional<Game> editGame(String gameId, GameDto gameDto) throws GameNotFoundException, DeveloperNotFoundException, PublisherNotFoundException {
+        Game game = gameRepository.findById(gameId).orElseThrow(GameNotFoundException::new);
+        game.setTitle(gameDto.getTitle());
+        game.setDescription(gameDto.getDescription());
+        game.setPrice(gameDto.getPrice());
+        game.setPublisher(publisherRepository.findById(gameDto.getPublisherId()).orElseThrow(PublisherNotFoundException::new));
+        game.setDeveloper(developerRepository.findById(gameDto.getDeveloperId()).orElseThrow(DeveloperNotFoundException::new));
+        game.setGenres(gameDto.getGenres().stream().map(genre -> Genre.valueOf(genre)).collect(Collectors.toList()));
+        gameRepository.save(game);
+        return Optional.of(game);
+    }
+
 }

@@ -23,6 +23,17 @@ const PublisherService = {
       { headers: authHeader() }
     );
   },
+  editPublisher: (publisherId, name, description, username) => {
+    return axios.put(
+      `/publisher/edit/${publisherId}`,
+      {
+        name,
+        description,
+        username,
+      },
+      { headers: authHeader() }
+    );
+  },
   deletePublisher: (publisherId) => {
     return axios.delete(`/publisher/remove/${publisherId}`, {
       headers: authHeader(),

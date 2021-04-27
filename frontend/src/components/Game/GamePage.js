@@ -37,6 +37,13 @@ class GamePage extends Component {
                 'col-md-9 d-flex flex-row justify-content-end align-items-center p-3'
               }
             >
+              <Link
+                onClick={() => this.props.handleGameSelect(this.props.game)}
+                to={`/game/edit/${this.props.game.id}`}
+                className={'mx-3 btn btn-primary'}
+              >
+                Edit
+              </Link>
               <button
                 onClick={() => this.handleDelete(this.props.game.id)}
                 className={'mx-3 btn btn-danger'}

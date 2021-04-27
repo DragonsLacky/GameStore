@@ -38,6 +38,16 @@ class DeveloperPage extends Component {
               )}
 
               {this.state.roles.includes('ROLE_PUBLISHER') && (
+                <Link
+                  onClick={() => this.props.handleDevSelect(this.props.dev)}
+                  className={'btn btn-primary rounded mr-4'}
+                  to={`/developer/edit/${this.props.dev.id}`}
+                >
+                  <h4>Edit Developer</h4>
+                </Link>
+              )}
+
+              {this.state.roles.includes('ROLE_PUBLISHER') && (
                 <button
                   onClick={() => this.handleDelete(this.props.dev.id)}
                   className={'btn btn-danger rounded mr-4'}

@@ -26,4 +26,6 @@ public interface GameService {
     public List<Game> getAllGamesByDev(String devId) throws DeveloperNotFoundException;
 
     public Optional<Boolean> removeGame(String id) throws GameNotFoundException;
+
+    public Optional<Game> editGame(String gameId, GameDto gameDto) throws GameNotFoundException, DeveloperNotFoundException, PublisherNotFoundException;
 }

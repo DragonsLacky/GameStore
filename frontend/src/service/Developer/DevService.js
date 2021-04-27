@@ -25,6 +25,19 @@ const DevService = {
       }
     );
   },
+  editDev: (devId, name, publisherId, username) => {
+    return axios.put(
+      `/dev/edit/${devId}`,
+      {
+        name,
+        publisherId,
+        username,
+      },
+      {
+        headers: authHeader(),
+      }
+    );
+  },
   deleteDeveloper: (developerId) => {
     return axios.delete(`/dev/remove/${developerId}`, {
       headers: authHeader(),

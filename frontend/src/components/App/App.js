@@ -19,6 +19,9 @@ import GameAdd from '../Game/GameAdd';
 import Wishlist from '../Wishlist/Wishlist';
 import DeveloperList from '../Developer/DeveloperList';
 import Register from '../Auth/RegisterPage';
+import GameEdit from '../Game/GameEdit';
+import PublisherEdit from '../Publisher/PublisherEdit';
+import DeveloperEdit from '../Developer/DeveloperEdit';
 
 class App extends Component {
   constructor(props) {
@@ -40,6 +43,13 @@ class App extends Component {
             <GameAdd
               dev={this.state.developer}
               publisher={this.state.publisher}
+            />
+          </Route>
+          <Route path={'/game/edit/:id'}>
+            <GameEdit
+              dev={this.state.developer}
+              publisher={this.state.publisher}
+              game={this.state.game}
             />
           </Route>
           <Route path="/games/genre/:id">
@@ -66,8 +76,12 @@ class App extends Component {
           <Route path={'/register'}>
             <Register />
           </Route>
+          <Route path={'/developer/edit/:id'}>
+            <DeveloperEdit developer={this.state.developer} />
+          </Route>
           <Route path={'/developer/:id'}>
             <DeveloperPage
+              handlePublisherSelect={this.handlePublisherSelect}
               handleDevSelect={this.handleDevSelect}
               handleGameSelect={this.handleGameSelect}
               dev={this.state.developer}
@@ -82,11 +96,15 @@ class App extends Component {
               handleDevSelect={this.handleDevSelect}
             />
           </Route>
+          <Route path={'/publisher/edit/:id'}>
+            <PublisherEdit publisher={this.state.publisher} />
+          </Route>
           <Route path={'/publisher/add'}>
             <PublisherAdd />
           </Route>
           <Route path={'/publisher/:id'}>
             <PublisherPage
+              handlePublisherSelect={this.handlePublisherSelect}
               handleDevSelect={this.handleDevSelect}
               publisher={this.state.publisher}
             />

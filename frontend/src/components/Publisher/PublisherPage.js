@@ -33,6 +33,17 @@ class PublisherPage extends Component {
                 </Link>
               )}
               {this.state.roles.includes('ROLE_PUBLISHER') && (
+                <Link
+                  onClick={() =>
+                    this.props.handlePublisherSelect(this.props.publisher)
+                  }
+                  to={`/publisher/edit/${this.props.publisher.id}`}
+                  className={'btn btn-primary m-4 w-50'}
+                >
+                  <h5>Edit Publisher</h5>
+                </Link>
+              )}
+              {this.state.roles.includes('ROLE_PUBLISHER') && (
                 <button
                   onClick={() => this.handleDelete(this.props.publisher.id)}
                   className={'btn btn-danger w-50'}

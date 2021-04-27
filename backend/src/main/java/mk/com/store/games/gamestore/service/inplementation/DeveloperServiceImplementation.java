@@ -61,16 +61,7 @@ public class DeveloperServiceImplementation implements DeveloperService {
 
     @Override
     public Optional<Developer> editDeveloper(String developerId, DeveloperDto developerDto) throws UserNotFoundException, PublisherNotFoundException, DeveloperNotFoundException {
-        User user = userRepository.findByUsername(developerDto.getUsername()).orElseThrow(UserNotFoundException::new);
-        Publisher publisher = user.getPublishers().stream().filter(pub -> pub.getId().equals(developerDto.getPublisherId())).findFirst().orElseThrow(PublisherNotFoundException::new);
         Developer developer = developerRepository.findById(developerId).orElseThrow(DeveloperNotFoundException::new);
-        if(!publisher.getStudios().contains(developer)){
-            Publisher currentPublisher = publisherRepository.findByStudios(developer).orElseThrow(PublisherNotFoundException::new);
-            currentPublisher.getStudios().remove(developer);
-            publisherRepository.save(currentPublisher);
-            publisher.getStudios().add(developer);
-            publisherRepository.save(publisher);
-        }
         developer.setName(developerDto.getName());
         return Optional.of(developerRepository.save(developer));
     }
