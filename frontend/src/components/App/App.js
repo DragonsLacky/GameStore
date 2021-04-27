@@ -33,7 +33,7 @@ class App extends Component {
   }
   render() {
     return (
-      <div className="App container-fluid" style={{ height: 100 + 'vh' }}>
+      <div className="App container-fluid">
         <Navigation handleGenreSelect={this.handleGenreSelect} />
         <Switch>
           <Route path={'/game/add'}>

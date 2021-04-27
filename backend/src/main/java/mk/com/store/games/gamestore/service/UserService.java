@@ -17,7 +17,7 @@ public interface UserService {
     
     public Optional<User> register(String username, String password, String email, Set<Role> roles);
 
-    public Optional<User> removeUser(String userId);
+    // public Optional<User> removeUser(String userId);
 
     public Boolean existsByUsername(String username);
 

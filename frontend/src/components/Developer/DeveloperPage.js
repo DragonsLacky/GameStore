@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
-import { AuthService } from '../../service';
+import { Link, withRouter } from 'react-router-dom';
+import { AuthService, DevService } from '../../service';
 import Games from '../Game/listgames';
 
 class DeveloperPage extends Component {
@@ -10,6 +10,11 @@ class DeveloperPage extends Component {
       roles: [],
     };
   }
+
+  componentDidMount() {
+    this.loadRoles();
+  }
+
   render() {
     return (
       <div className={'bg-dark text-white h-100'}>
@@ -30,6 +35,15 @@ class DeveloperPage extends Component {
                 >
                   <h4>Add Game</h4>
                 </Link>
+              )}
+
+              {this.state.roles.includes('ROLE_PUBLISHER') && (
+                <button
+                  onClick={() => this.handleDelete(this.props.dev.id)}
+                  className={'btn btn-danger rounded mr-4'}
+                >
+                  <h4>Delete developer</h4>
+                </button>
               )}
             </div>
           </div>
@@ -55,6 +69,13 @@ class DeveloperPage extends Component {
       });
     }
   };
+
+  handleDelete = (developerId) => {
+    DevService.deleteDeveloper(developerId).then((response) => {
+      this.props.history.push('/Store/popular');
+      window.location.reload();
+    });
+  };
 }
 
-export default DeveloperPage;
+export default withRouter(DeveloperPage);

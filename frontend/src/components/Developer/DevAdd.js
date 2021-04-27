@@ -34,7 +34,6 @@ class DeveloperAdd extends Component {
   }
 
   render() {
-    console.log(this.state.username);
     return (
       <div className={'bg-dark text-white'}>
         <div className={'row'}>

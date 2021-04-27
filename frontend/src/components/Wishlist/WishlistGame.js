@@ -98,6 +98,15 @@ class WishlistGame extends Component {
     }
   };
 
+  handleCartAdd = (gameId) => {
+    let user = AuthService.getCurrentUser();
+    if (user) {
+      CartService.addGameToCart(user.username, gameId).then(() =>
+        this.loadCartGames()
+      );
+    }
+  };
+
   loadCartGames = () => {
     let user = AuthService.getCurrentUser();
     if (user) {

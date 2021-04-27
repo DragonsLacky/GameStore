@@ -30,10 +30,10 @@ public class Game {
     @Field
     Double price;
 
-    @DBRef(lazy = true)
+    @DBRef
     Developer developer;
     
-    @DBRef(lazy = true)
+    @DBRef
     Publisher publisher;
 
     @Field

@@ -66,12 +66,4 @@ public class UserServiceImplementation implements UserService {
     public Boolean existsByEmail(String email) {
         return userRepository.findByEmail(email).map((item) -> true).orElseGet(() -> false);
     }
-
-    @Override
-    public Optional<User> removeUser(String userId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    
 }

@@ -8,11 +8,14 @@ import org.springframework.stereotype.Service;
 import mk.com.store.games.gamestore.model.Publisher;
 import mk.com.store.games.gamestore.model.User;
 import mk.com.store.games.gamestore.model.dto.PublisherDto;
+import mk.com.store.games.gamestore.model.exception.DeveloperNotFoundException;
 import mk.com.store.games.gamestore.model.exception.PublisherNotFoundException;
 import mk.com.store.games.gamestore.model.exception.UserNotFoundException;
 import mk.com.store.games.gamestore.repository.GameRepository;
 import mk.com.store.games.gamestore.repository.PublisherRepository;
 import mk.com.store.games.gamestore.repository.UserRepository;
+import mk.com.store.games.gamestore.service.DeveloperService;
+import mk.com.store.games.gamestore.service.GameService;
 import mk.com.store.games.gamestore.service.PublisherService;
 
 @Service
@@ -20,14 +23,14 @@ public class PublisherServiceImplementation  implements PublisherService{
 
     private final PublisherRepository publisherRepository;
     private final UserRepository userRepository;
-    private final GameRepository gameRepository;
+    private final DeveloperService developerService;
 
 
     public PublisherServiceImplementation(PublisherRepository publisherRepository, UserRepository userRepository,
-            GameRepository gameRepository) {
+            DeveloperService developerService) {
         this.publisherRepository = publisherRepository;
         this.userRepository = userRepository;
-        this.gameRepository = gameRepository;
+        this.developerService = developerService;
     }
 
     @Override
@@ -79,11 +82,15 @@ public class PublisherServiceImplementation  implements PublisherService{
     }
 
     @Override
-    public Optional<Boolean> removePublisher(String publisherId, String username) throws UserNotFoundException, PublisherNotFoundException {
+    public Optional<Boolean> removePublisher(String publisherId) throws UserNotFoundException, PublisherNotFoundException {
         Publisher publisher = publisherRepository.findById(publisherId).stream().filter(pub -> pub.getId().equals(publisherId)).findFirst().orElseThrow(PublisherNotFoundException::new);
-        if(publisher.getStudios().stream().anyMatch(studio -> !gameRepository.findByDeveloper(studio).isEmpty())){
-            return Optional.of(false);
-        }
+        publisher.getStudios().forEach(studio -> {
+            try {
+                developerService.removeDeveloper(studio.getId());
+            } catch (DeveloperNotFoundException | UserNotFoundException | PublisherNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
         publisherRepository.delete(publisher);
         return Optional.of(true);
     }

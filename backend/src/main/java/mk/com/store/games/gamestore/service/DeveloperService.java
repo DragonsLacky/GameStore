@@ -19,5 +19,5 @@ public interface DeveloperService {
 
     public Optional<Developer> editDeveloper(String developerId, DeveloperDto developerDto) throws UserNotFoundException, PublisherNotFoundException, DeveloperNotFoundException;
 
-    public Optional<Boolean> removeDeveloper(String developerId, DeveloperDto developerDto) throws DeveloperNotFoundException, UserNotFoundException, PublisherNotFoundException;
+    public Optional<Boolean> removeDeveloper(String developerId) throws DeveloperNotFoundException, UserNotFoundException, PublisherNotFoundException;
 }

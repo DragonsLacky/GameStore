@@ -4,21 +4,28 @@ import axios from '../server/AxiosInstance';
 const PublisherService = {
   fetchPublishers: () => {
     return axios.get('/publisher', {
-      header: authHeader(),
+      headers: authHeader(),
     });
   },
   fetchOwnedPublishers: (username) => {
     return axios.get(`/publisher/${username}`, {
-      header: authHeader(),
+      headers: authHeader(),
     });
   },
   createPublisher: (name, description, username) => {
-    return axios.post('/publisher/add', {
-      header: authHeader(),
-
-      name,
-      description,
-      username,
+    return axios.post(
+      '/publisher/add',
+      {
+        name,
+        description,
+        username,
+      },
+      { headers: authHeader() }
+    );
+  },
+  deletePublisher: (publisherId) => {
+    return axios.delete(`/publisher/remove/${publisherId}`, {
+      headers: authHeader(),
     });
   },
 };

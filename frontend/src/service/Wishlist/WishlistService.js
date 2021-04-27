@@ -4,27 +4,32 @@ import axios from '../server/AxiosInstance';
 const WishlistService = {
   fetchWishlistGames: (username) => {
     return axios.get(`/wishlist/${username}`, {
-      header: authHeader(),
+      headers: authHeader(),
     });
   },
   addGameToWishlist: (username, gameId) => {
-    return axios.put('/wishlist/add', {
-      header: authHeader(),
-      username,
-      gameId,
-    });
+    return axios.put(
+      '/wishlist/add',
+      {
+        username,
+        gameId,
+      },
+      { headers: authHeader() }
+    );
   },
   removeGameFromWishlist: (username, gameId) => {
-    console.log(username, gameId);
-    return axios.post('/wishlist/remove', {
-      header: authHeader(),
-      username,
-      gameId,
-    });
+    return axios.post(
+      '/wishlist/remove',
+      {
+        username,
+        gameId,
+      },
+      { headers: authHeader() }
+    );
   },
   clearWishlist: (username) => {
     return axios.delete(`/wishlist/${username}`, {
-      header: authHeader(),
+      headers: authHeader(),
     });
   },
 };

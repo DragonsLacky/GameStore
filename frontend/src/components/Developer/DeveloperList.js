@@ -16,7 +16,7 @@ class DeveloperList extends Component {
 
   render() {
     return (
-      <div>
+      <div className={'d-flex justify-content-center w-100'}>
         {this.props.byPublisher ? (
           <div className={'d-flex flex-column bg-dark text-white col-md-6'}>
             {this.props.publisher.studios.map((dev) => {
@@ -51,7 +51,6 @@ class DeveloperList extends Component {
 
   loadDevelopers = () => {
     DevService.fetchDevs().then((response) => {
-      console.log(response);
       this.setState({
         developers: response.data,
       });

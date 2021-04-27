@@ -3,11 +3,16 @@ import authHeader from '../Auth/auth-header';
 
 const UserService = {
   loadUser(username) {
-    return axios.post(`/user/${username}`, {
-      header: authHeader(),
-      username: username,
-      email: 'email',
-    });
+    return axios.post(
+      `/user/${username}`,
+      {
+        username: username,
+        email: 'email',
+      },
+      {
+        headers: authHeader(),
+      }
+    );
   },
 };
 

@@ -10,6 +10,7 @@ import mk.com.store.games.gamestore.model.Publisher;
 import mk.com.store.games.gamestore.model.User;
 import mk.com.store.games.gamestore.model.dto.DeveloperDto;
 import mk.com.store.games.gamestore.model.exception.DeveloperNotFoundException;
+import mk.com.store.games.gamestore.model.exception.GameNotFoundException;
 import mk.com.store.games.gamestore.model.exception.PublisherNotFoundException;
 import mk.com.store.games.gamestore.model.exception.UserNotFoundException;
 import mk.com.store.games.gamestore.repository.DeveloperRepository;
@@ -17,6 +18,7 @@ import mk.com.store.games.gamestore.repository.GameRepository;
 import mk.com.store.games.gamestore.repository.PublisherRepository;
 import mk.com.store.games.gamestore.repository.UserRepository;
 import mk.com.store.games.gamestore.service.DeveloperService;
+import mk.com.store.games.gamestore.service.GameService;
 
 @Service
 public class DeveloperServiceImplementation implements DeveloperService {
@@ -24,16 +26,15 @@ public class DeveloperServiceImplementation implements DeveloperService {
     private final UserRepository userRepository;
     private final PublisherRepository publisherRepository;
     private final DeveloperRepository developerRepository;
-    private final GameRepository gameRepository;
+    private final GameService gameService;
 
     public DeveloperServiceImplementation(UserRepository userRepository, PublisherRepository publisherRepository,
-            DeveloperRepository developerRepository, GameRepository gameRepository) {
+            DeveloperRepository developerRepository, GameService gameService) {
         this.userRepository = userRepository;
         this.publisherRepository = publisherRepository;
         this.developerRepository = developerRepository;
-        this.gameRepository = gameRepository;
+        this.gameService = gameService;
     }
-
     
     @Override
     public List<Developer> getAllDevelopers() {
@@ -75,13 +76,16 @@ public class DeveloperServiceImplementation implements DeveloperService {
     }
 
     @Override
-    public Optional<Boolean> removeDeveloper(String developerId,DeveloperDto developerDto) throws DeveloperNotFoundException, UserNotFoundException, PublisherNotFoundException {
-        User user = userRepository.findByUsername(developerDto.getUsername()).orElseThrow(UserNotFoundException::new);
-        Publisher publisher = user.getPublishers().stream().filter(pub -> pub.getId().equals(developerDto.getPublisherId())).findFirst().orElseThrow(PublisherNotFoundException::new);
-        Developer developer = publisher.getStudios().stream().filter(dev -> dev.getId().equals(developerId)).findFirst().orElseThrow(DeveloperNotFoundException::new);
-        if(!gameRepository.findByDeveloper(developer).isEmpty()){
-            return Optional.of(false);
-        }
+    public Optional<Boolean> removeDeveloper(String developerId) throws DeveloperNotFoundException, UserNotFoundException, PublisherNotFoundException {
+        Developer developer = developerRepository.findById(developerId).orElseThrow(DeveloperNotFoundException::new);
+        Publisher publisher = publisherRepository.findByStudios(developer).orElseThrow(PublisherNotFoundException::new);
+        gameService.getAllGamesByDev(developerId).forEach(game -> {
+            try {
+                gameService.removeGame(game.getId());
+            } catch (GameNotFoundException e) {
+                e.printStackTrace();
+            }
+        });
         publisher.getStudios().remove(developer);
         publisherRepository.save(publisher);
         developerRepository.delete(developer);

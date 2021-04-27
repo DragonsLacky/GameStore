@@ -3,6 +3,7 @@ package mk.com.store.games.gamestore.web.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,6 +33,7 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @PreAuthorize("hasRole('USER') or hasRole('PUBLISHER') or hasRole('ADMIN')")
     @PostMapping("/{username}")
     public ResponseEntity<User> findUser(@RequestBody UserSearchDto userSearchDto) throws UserNotFoundException {
         return userService.getUser(userSearchDto.getUsername())

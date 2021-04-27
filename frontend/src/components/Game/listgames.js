@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { AuthService, GameService } from '../../service';
+import authHeader from '../../service/Auth/auth-header';
 import Game from './singleGame';
 
 class Games extends Component {
@@ -21,10 +22,8 @@ class Games extends Component {
   }
   render() {
     return (
-      <div className={'text-white'}>
-        <div className={'container-fluid bg-dark p-3 h-100'}>
-          {this.listGames()}
-        </div>
+      <div className={'text-white bg-dark'}>
+        <div className={'container-fluid bg-dark p-3'}>{this.listGames()}</div>
         <div
           onClick={() => this.increaseShow()}
           className={
@@ -64,7 +63,6 @@ class Games extends Component {
   };
 
   componentDidMount() {
-    console.log(this.props.criteria);
     this.loadGames(this.props.criteria);
   }
 

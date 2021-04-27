@@ -3,6 +3,7 @@ package mk.com.store.games.gamestore.web.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,15 +36,14 @@ public class PublisherController {
     public List<Publisher> gList() {
         return this.publisherService.getAllPublishers();
     }
-    
-    // TODO: make addEditor link
-    // TODO: make removeEditor link
 
+    @PreAuthorize("hasRole('PUBLISHER') or hasRole('ADMIN')")
     @GetMapping("/{username}")
     public List<Publisher> getUserPublishers(@PathVariable String username) throws UserNotFoundException {
         return this.publisherService.getAllPublisherByUser(username);
     }
     
+    @PreAuthorize("hasRole('PUBLISHER') or hasRole('ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<Publisher> addPublisher(@RequestBody PublisherDto publisherDto) throws UserNotFoundException {
         return publisherService.addPublisher(publisherDto)
@@ -51,6 +51,7 @@ public class PublisherController {
             .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
+    @PreAuthorize("hasRole('PUBLISHER') or hasRole('ADMIN')")
     @PutMapping("/edit/{publisherId}")
     public ResponseEntity<Publisher> editPublisher(@PathVariable String publisherId, @RequestBody PublisherDto publisherDto) throws UserNotFoundException, PublisherNotFoundException {
         return publisherService.editPublisher(publisherId, publisherDto)
@@ -58,9 +59,10 @@ public class PublisherController {
             .orElseGet(() -> ResponseEntity.badRequest().build());
     }
 
-    @DeleteMapping("/edit/{publisherId}")
-    public ResponseEntity<Boolean> deletePublisher(@PathVariable String publisherId, @RequestBody String username) throws UserNotFoundException, PublisherNotFoundException {
-        return publisherService.removePublisher(publisherId, username)
+    @PreAuthorize("hasRole('PUBLISHER') or hasRole('ADMIN')")
+    @DeleteMapping("/remove/{publisherId}")
+    public ResponseEntity<Boolean> deletePublisher(@PathVariable String publisherId) throws UserNotFoundException, PublisherNotFoundException {
+        return publisherService.removePublisher(publisherId)
             .map(bool -> ResponseEntity.ok().body(bool))
             .orElseGet(() -> ResponseEntity.badRequest().build());
     }

@@ -4,7 +4,7 @@ import axios from '../server/AxiosInstance';
 const GenreService = {
   fetchGenres: () => {
     return axios.get('/genre', {
-      header: authHeader(),
+      headers: authHeader(),
     });
   },
 };
