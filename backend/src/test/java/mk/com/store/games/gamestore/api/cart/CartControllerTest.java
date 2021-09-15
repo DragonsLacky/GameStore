@@ -1,14 +1,18 @@
-package mk.com.store.games.gamestore.api.auth;
+package mk.com.store.games.gamestore.api.cart;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import mk.com.store.games.gamestore.model.*;
+import mk.com.store.games.gamestore.model.dto.CartDto;
 import mk.com.store.games.gamestore.model.dto.LoginRequest;
 import mk.com.store.games.gamestore.model.dto.RegisterRequest;
 import mk.com.store.games.gamestore.model.enumeration.ERole;
 import mk.com.store.games.gamestore.model.enumeration.Genre;
+import mk.com.store.games.gamestore.model.exception.GameNotFoundException;
+import mk.com.store.games.gamestore.model.exception.UserNotFoundException;
 import mk.com.store.games.gamestore.service.CartService;
-import mk.com.store.games.gamestore.web.controller.AuthController;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONString;
 import org.junit.jupiter.api.AfterEach;
@@ -16,17 +20,20 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -34,6 +41,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,10 +51,13 @@ import java.util.stream.Collectors;
 @SpringBootTest
 @AutoConfigureDataMongo
 @ActiveProfiles("test")
-public class authControllerTest {
+public class CartControllerTest {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private CartService cartService;
     
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -56,8 +67,10 @@ public class authControllerTest {
     
     private Game game_2;
     
+    private final List<String> tokens = new ArrayList<>();
+    
     @BeforeEach
-    public void init() {
+    public void init() throws Exception {
         Role role_1 = mongoTemplate.save(new Role(ERole.ROLE_USER));
         Role role_2 = mongoTemplate.save(new Role(ERole.ROLE_PUBLISHER));
         Role role_3 = mongoTemplate.save(new Role(ERole.ROLE_ADMIN));
@@ -126,70 +139,109 @@ public class authControllerTest {
         mongoTemplate.save(user_2);
         mongoTemplate.save(cart_2);
         mongoTemplate.save(user_3);
-    }
-    
-    
-    @Test
-    public void AuthenticationTest() throws Exception {
+        
         MvcResult mvcResult = this.mvc.perform(post("/api/auth/login")
+                        .content(asJsonString(new LoginRequest("user_1", "user1_password")))
+                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        JSONObject jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
+        tokens.add(jsonObject.getString("token"));
+        mvcResult = this.mvc.perform(post("/api/auth/login")
+                        .content(asJsonString(new LoginRequest("user_2", "user2_password")))
+                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
+        tokens.add(jsonObject.getString("token"));
+        mvcResult = this.mvc.perform(post("/api/auth/login")
                         .content(asJsonString(new LoginRequest("user_3", "user3_password")))
+                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
+        tokens.add(jsonObject.getString("token"));
+    }
+    
+    public static Collection<Object[]> userParameters() {
+        return Arrays.asList(new Object[][]{
+                {"user_3", 2},
+                {"user_2", 1},
+                {"user_1", 0},
+        });
+    }
+    
+    
+    @ParameterizedTest
+    @MethodSource("userParameters")
+    public void getAllGamesInCartByUserTest(String username, Integer tokenIndex) throws Exception {
+        MvcResult mvcResult = this.mvc.perform(get("/api/cart/" + username)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(tokenIndex))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        String result = mvcResult.getResponse().getContentAsString();
+        String expected = asJsonString(mongoTemplate.findOne(new Query(new Criteria("username").is(username)), User.class).getCart().getGames());
+        Assertions.assertEquals(expected, result);
+    }
+    
+    @ParameterizedTest
+    @MethodSource("userParameters")
+    public void addGameToCartTest(String username, Integer tokenIndex) throws Exception {
+        MvcResult mvcResult = this.mvc.perform(put("/api/cart/add")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(tokenIndex))
+                        .content(asJsonString(new CartDto(username, game_2.getId())))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        JSONObject jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
-        Assertions.assertEquals("user_3", Jwts.parser().setSigningKey("MySecret").parseClaimsJws(jsonObject.getString("token")).getBody().getSubject());
+        String result = mvcResult.getResponse().getContentAsString();
+        String expected = asJsonString(mongoTemplate.findOne(new Query(new Criteria("username").is(username)), User.class).getCart().getGames());
+        Assertions.assertEquals(expected, result);
     }
     
-    @Test
-    public void AuthenticationInvalidTest() throws Exception {
-        this.mvc.perform(post("/api/auth/login")
-                        .content(asJsonString(new LoginRequest("user_18", "doesnotexist")))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
-    }
-    
-    @Test
-    public void RegistrationTest() throws Exception {
-        MvcResult mvcResult = this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user", "gooduser@gmail.com", "password32", null)))
+    @ParameterizedTest
+    @MethodSource("userParameters")
+    public void removeGameFromCartTest(String username, Integer tokenIndex) throws Exception {
+        MvcResult mvcResult = this.mvc.perform(post("/api/cart/remove")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(tokenIndex))
+                        .content(asJsonString(new CartDto(username, game_2.getId())))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        JSONObject jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
-        Assertions.assertEquals("custom_user", jsonObject.getString("username"));
-        Assertions.assertEquals(ERole.ROLE_USER.toString(), jsonObject.getJSONArray("roles").getJSONObject(0).getString("name"));
+        String result = mvcResult.getResponse().getContentAsString();
+        String expected = asJsonString(mongoTemplate.findOne(new Query(new Criteria("username").is(username)), User.class).getCart().getGames());
+        Assertions.assertEquals(expected, result);
     }
     
-    @Test
-    public void RegistrationDuplicateUserNameTest() throws Exception {
-        this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user", "gooduser@gmail.com", "password32", null)))
-                        .contentType(MediaType.APPLICATION_JSON)
+    @ParameterizedTest
+    @MethodSource("userParameters")
+    public void buyGameFromCartTest(String username, Integer tokenIndex) throws Exception {
+        MvcResult mvcResult = this.mvc.perform(post("/api/cart/buy/" + username)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(tokenIndex))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-        this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user", "another@gmail.com", "password32", null)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andReturn();
+        String result = mvcResult.getResponse().getContentAsString();
+        String expected = asJsonString(new ArrayList<>());
+        Assertions.assertEquals(expected, result);
     }
     
-    @Test
-    public void RegistrationDuplicateEmailTest() throws Exception {
-        this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user", "gooduser@gmail.com", "password32", null)))
-                        .contentType(MediaType.APPLICATION_JSON)
+    
+    @ParameterizedTest
+    @MethodSource("userParameters")
+    public void clearGameFromCartTest(String username, Integer tokenIndex) throws Exception {
+        MvcResult mvcResult = this.mvc.perform(delete("/api/cart/clear/" + username)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(tokenIndex))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-        this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user_2", "gooduser@gmail.com", "password32", null)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andReturn();
+        String result = mvcResult.getResponse().getContentAsString();
+        String expected = asJsonString(new ArrayList<>());
+        Assertions.assertEquals(expected, result);
     }
+    
     
     public static String asJsonString(final Object obj) {
         try {

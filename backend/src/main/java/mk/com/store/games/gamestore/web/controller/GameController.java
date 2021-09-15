@@ -44,8 +44,6 @@ public class GameController {
         return gameService.getAllGames();
     }
     
-    
-    
     @PreAuthorize("hasRole('USER') or hasRole('PUBLISHER') or hasRole('ADMIN')")
     @PostMapping("/owned")
     public List<Game> getUserGames(@RequestBody UserSearchDto userSearchDto) throws UserNotFoundException {

@@ -1,32 +1,29 @@
-package mk.com.store.games.gamestore.api.auth;
+package mk.com.store.games.gamestore.api.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Jwts;
 import mk.com.store.games.gamestore.model.*;
+import mk.com.store.games.gamestore.model.dto.GameDto;
 import mk.com.store.games.gamestore.model.dto.LoginRequest;
-import mk.com.store.games.gamestore.model.dto.RegisterRequest;
+import mk.com.store.games.gamestore.model.dto.PublisherDto;
+import mk.com.store.games.gamestore.model.dto.UserSearchDto;
 import mk.com.store.games.gamestore.model.enumeration.ERole;
 import mk.com.store.games.gamestore.model.enumeration.Genre;
-import mk.com.store.games.gamestore.service.CartService;
-import mk.com.store.games.gamestore.web.controller.AuthController;
 import org.json.JSONObject;
-import org.json.JSONString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.AutoConfigureDataMongo;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,13 +34,16 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureDataMongo
 @ActiveProfiles("test")
-public class authControllerTest {
+public class PublisherControllerTest {
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -56,8 +56,10 @@ public class authControllerTest {
     
     private Game game_2;
     
+    private final List<String> tokens = new ArrayList<>();
+    
     @BeforeEach
-    public void init() {
+    public void init() throws Exception {
         Role role_1 = mongoTemplate.save(new Role(ERole.ROLE_USER));
         Role role_2 = mongoTemplate.save(new Role(ERole.ROLE_PUBLISHER));
         Role role_3 = mongoTemplate.save(new Role(ERole.ROLE_ADMIN));
@@ -126,70 +128,130 @@ public class authControllerTest {
         mongoTemplate.save(user_2);
         mongoTemplate.save(cart_2);
         mongoTemplate.save(user_3);
-    }
-    
-    
-    @Test
-    public void AuthenticationTest() throws Exception {
+        
         MvcResult mvcResult = this.mvc.perform(post("/api/auth/login")
+                        .content(asJsonString(new LoginRequest("user_1", "user1_password")))
+                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        JSONObject jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
+        tokens.add(jsonObject.getString("token"));
+        mvcResult = this.mvc.perform(post("/api/auth/login")
+                        .content(asJsonString(new LoginRequest("user_2", "user2_password")))
+                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
+        tokens.add(jsonObject.getString("token"));
+        mvcResult = this.mvc.perform(post("/api/auth/login")
                         .content(asJsonString(new LoginRequest("user_3", "user3_password")))
+                        .contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
+        tokens.add(jsonObject.getString("token"));
+    }
+    
+    public static Collection<Object[]> userParameters() {
+        return Arrays.asList(new Object[][]{
+                {"user_3", 2},
+                {"user_2", 1},
+                {"user_1", 0},
+        });
+    }
+    
+    @Test
+    public void getAllPublishersByUserTest() throws Exception {
+        MvcResult mvcResult = this.mvc.perform(get("/api/publisher/" + "user_3")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(2)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String result = mvcResult.getResponse().getContentAsString();
+        String expected = asJsonString(mongoTemplate.findOne(new Query(new Criteria("username").is("user_3")), User.class).getPublishers());
+        Assertions.assertEquals(expected, result);
+    }
+    
+    @Test
+    public void getAllPublishersByUserUnauthorizedTest() throws Exception {
+        this.mvc.perform(get("/api/publisher/" + "user_3")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(0)))
+                .andExpect(status().isForbidden());
+    }
+    
+    
+    @Test
+    public void addNewPublisherTest() throws Exception {
+        MvcResult mvcResult = this.mvc.perform(post("/api/publisher/add")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(2))
+                        .content(asJsonString(new PublisherDto("AnotherPublisher", "Cool description", "user_3")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        JSONObject jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
-        Assertions.assertEquals("user_3", Jwts.parser().setSigningKey("MySecret").parseClaimsJws(jsonObject.getString("token")).getBody().getSubject());
+        String result = mvcResult.getResponse().getContentAsString();
+        String expected = asJsonString(mongoTemplate.findOne(new Query(new Criteria("name").is("AnotherPublisher")), Publisher.class));
+        Assertions.assertEquals(expected, result);
     }
     
     @Test
-    public void AuthenticationInvalidTest() throws Exception {
-        this.mvc.perform(post("/api/auth/login")
-                        .content(asJsonString(new LoginRequest("user_18", "doesnotexist")))
+    public void publishNewGameUnahtorizedTest() throws Exception {
+        this.mvc.perform(post("/api/publisher/add")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(0))
+                        .content(asJsonString(new PublisherDto("AnotherPublisher", "Cool description", "user_3")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
     
     @Test
-    public void RegistrationTest() throws Exception {
-        MvcResult mvcResult = this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user", "gooduser@gmail.com", "password32", null)))
+    public void editExistingPublisherTest() throws Exception {
+        User user = mongoTemplate.findOne(new Query(new Criteria("username").is("user_3")), User.class);
+        MvcResult mvcResult = this.mvc.perform(put("/api/publisher/edit/" + user.getPublishers().get(0).getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(2))
+                        .content(asJsonString(new PublisherDto("NewPublisherName", "Cooler description", "user_3")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
-        JSONObject jsonObject = new JSONObject(mvcResult.getResponse().getContentAsString());
-        Assertions.assertEquals("custom_user", jsonObject.getString("username"));
-        Assertions.assertEquals(ERole.ROLE_USER.toString(), jsonObject.getJSONArray("roles").getJSONObject(0).getString("name"));
+        String result = mvcResult.getResponse().getContentAsString();
+        String expected = asJsonString(user.getPublishers().get(0));
+        Assertions.assertNotEquals(expected, result);
+        expected = asJsonString(mongoTemplate.findById(user.getPublishers().get(0).getId(),Publisher.class));
+        Assertions.assertEquals(expected, result);
     }
     
     @Test
-    public void RegistrationDuplicateUserNameTest() throws Exception {
-        this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user", "gooduser@gmail.com", "password32", null)))
+    public void editExistingGameUnauthorizedTest() throws Exception {
+        User user = mongoTemplate.findOne(new Query(new Criteria("username").is("user_3")), User.class);
+        this.mvc.perform(put("/api/publisher/edit/" + user.getPublishers().get(0).getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(0))
+                        .content(asJsonString(new PublisherDto("NewPublisherName", "Cooler description", "user_3")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-        this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user", "another@gmail.com", "password32", null)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
     
     @Test
-    public void RegistrationDuplicateEmailTest() throws Exception {
-        this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user", "gooduser@gmail.com", "password32", null)))
-                        .contentType(MediaType.APPLICATION_JSON)
+    public void removeExistingGameTest() throws Exception {
+        User user = mongoTemplate.findOne(new Query(new Criteria("username").is("user_3")), User.class);
+        this.mvc.perform(delete("/api/publisher/remove/" + user.getPublishers().get(0).getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(2))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
-        this.mvc.perform(post("/api/auth/register")
-                        .content(asJsonString(new RegisterRequest("custom_user_2", "gooduser@gmail.com", "password32", null)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        Assertions.assertNull(mongoTemplate.findById(user.getPublishers().get(0).getId(), Game.class));
     }
+    
+    @Test
+    public void removeExistingGameUnAuthorizedTest() throws Exception {
+        User user = mongoTemplate.findOne(new Query(new Criteria("username").is("user_3")), User.class);
+        this.mvc.perform(delete("/api/publisher/remove/" + user.getPublishers().get(0).getId())
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.get(0))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+    
     
     public static String asJsonString(final Object obj) {
         try {
