@@ -19,11 +19,12 @@ const AuthService = {
     localStorage.removeItem('user');
   },
 
-  register(username, email, password) {
+  register(username, email, password, roles) {
     return axios.post('/auth/register', {
       username,
       email,
       password,
+      roles
     });
   },
   getCurrentUser() {

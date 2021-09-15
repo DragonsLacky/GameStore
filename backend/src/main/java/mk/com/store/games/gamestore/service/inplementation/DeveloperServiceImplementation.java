@@ -1,6 +1,7 @@
 package mk.com.store.games.gamestore.service.inplementation;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -43,6 +44,12 @@ public class DeveloperServiceImplementation implements DeveloperService {
 
     @Override
     public List<Developer> getAllDevelopersForPublisher(String username, String publisherId) throws UserNotFoundException, PublisherNotFoundException {
+        if(username == null) throw new IllegalArgumentException("Username can not be null");
+        if(username.trim().equals("")) throw new IllegalArgumentException("Username can not be empty string");
+        if(username.contains(" ")) throw new IllegalArgumentException("Username can not contain empty spaces");
+        if(publisherId == null) throw new IllegalArgumentException("PublisherId can not be null");
+        if(publisherId.trim().equals("")) throw new IllegalArgumentException("PublisherId can not be empty string");
+        if(publisherId.contains(" ")) throw new IllegalArgumentException("PublisherId can not contain empty spaces");
         User user = userRepository.findByUsername(username).orElseThrow(UserNotFoundException::new);
         Publisher publisher = user.getPublishers().stream().filter(pub -> pub.getId().equals(publisherId)).findFirst().orElseThrow(PublisherNotFoundException::new);
         return publisher.getStudios();
@@ -50,6 +57,10 @@ public class DeveloperServiceImplementation implements DeveloperService {
 
     @Override
     public Optional<Developer> addNewDeveloper(DeveloperDto developerDto) throws PublisherNotFoundException, UserNotFoundException {
+        if(developerDto == null) throw new IllegalArgumentException("developer info can not be null");
+        if(developerDto.getUsername() == null) throw new IllegalArgumentException("Username can not be null");
+        if(developerDto.getUsername().trim().equals("")) throw new IllegalArgumentException("Username can not be empty string");
+        if(developerDto.getUsername().contains(" ")) throw new IllegalArgumentException("Username can not contain empty spaces");
         User user = userRepository.findByUsername(developerDto.getUsername()).orElseThrow(UserNotFoundException::new);
         Publisher publisher = user.getPublishers().stream().filter(pub -> pub.getId().equals(developerDto.getPublisherId())).findFirst().orElseThrow(PublisherNotFoundException::new);
         Developer developer = new Developer(developerDto.getName());
@@ -60,7 +71,11 @@ public class DeveloperServiceImplementation implements DeveloperService {
     }
 
     @Override
-    public Optional<Developer> editDeveloper(String developerId, DeveloperDto developerDto) throws UserNotFoundException, PublisherNotFoundException, DeveloperNotFoundException {
+    public Optional<Developer> editDeveloper(String developerId, DeveloperDto developerDto) throws DeveloperNotFoundException {
+        if(developerDto == null) throw new IllegalArgumentException("Developer info can not be null");
+        if(developerId == null) throw new IllegalArgumentException("DeveloperId can not be null");
+        if(developerId.trim().equals("")) throw new IllegalArgumentException("DeveloperId can not be empty string");
+        if(developerId.contains(" ")) throw new IllegalArgumentException("DeveloperId can not contain empty spaces");
         Developer developer = developerRepository.findById(developerId).orElseThrow(DeveloperNotFoundException::new);
         developer.setName(developerDto.getName());
         return Optional.of(developerRepository.save(developer));
@@ -68,6 +83,9 @@ public class DeveloperServiceImplementation implements DeveloperService {
 
     @Override
     public Optional<Boolean> removeDeveloper(String developerId) throws DeveloperNotFoundException, UserNotFoundException, PublisherNotFoundException {
+        if(developerId == null) throw new IllegalArgumentException("DeveloperId can not be null");
+        if(developerId.trim().equals("")) throw new IllegalArgumentException("DeveloperId can not be empty string");
+        if(developerId.contains(" ")) throw new IllegalArgumentException("DeveloperId can not contain empty spaces");
         Developer developer = developerRepository.findById(developerId).orElseThrow(DeveloperNotFoundException::new);
         Publisher publisher = publisherRepository.findByStudios(developer).orElseThrow(PublisherNotFoundException::new);
         gameService.getAllGamesByDev(developerId).forEach(game -> {

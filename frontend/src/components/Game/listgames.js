@@ -1,18 +1,21 @@
 import React, { Component } from 'react';
 import { AuthService, GameService } from '../../service';
-import authHeader from '../../service/Auth/auth-header';
 import Game from './singleGame';
 
 class Games extends Component {
   constructor(props) {
     super(props);
+    console.log(this.props.display)
     if (props.display === 'dev') {
       this.loadGames = this.loadDevGames;
     } else if (props.display === 'owned') {
       this.loadGames = this.loadOwnedGames;
     } else if (props.display === 'genre') {
       this.loadGames = this.loadGamesByGenre;
+    } else if (props.display === 'search') {
+      this.loadGames = this.searchGames
     } else {
+      console.log('hereAll')
       this.loadGames = this.loadAllGames;
     }
     this.state = {
@@ -90,6 +93,14 @@ class Games extends Component {
       );
     }
   };
+
+  searchGames = (search) => {
+    GameService.fetchGamesBySearchTerm(search).then((response) => {
+      this.setState({
+        games: response.data,
+      })
+    })
+  }
 
   loadGamesByGenre = (genre) => {
     GameService.fetchGamesByGenre(genre).then((response) => {

@@ -3,6 +3,7 @@ package mk.com.store.games.gamestore.model;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import mk.com.store.games.gamestore.model.enumeration.Genre;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 @NoArgsConstructor
 @Getter
+@Setter
 @Data
 @Document(collection = "games")
 public class Game {

@@ -12,6 +12,7 @@ class PublisherPage extends Component {
   }
 
   componentDidMount() {
+    console.log('hello')
     this.loadRoles();
   }
 

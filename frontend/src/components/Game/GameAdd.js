@@ -76,7 +76,7 @@ class GameAdd extends Component {
         selectedGenre: genres.filter((genre) => genre !== e.target.value),
       });
     } else {
-      genres.push(e.target.value);
+      genres = [...this.state.selectedGenre, e.target.value];
       this.setState({
         selectedGenre: genres,
       });
@@ -92,6 +92,7 @@ class GameAdd extends Component {
               <div className={'card bg-dark p-5 w-50'}>
                 <div className={'mb-4'}>
                   <h3>Adding a new Game</h3>
+                  {this.state.selectedGenre}
                 </div>
                 <Form
                   onSubmit={this.handleGameCreate}
@@ -156,7 +157,6 @@ class GameAdd extends Component {
                       />
                     </div>
                   </div>
-                  <div className="form-group w-100"></div>
                   <div className="form-group">
                     {this.state.genres.map((genre) => {
                       return (
@@ -172,8 +172,8 @@ class GameAdd extends Component {
                             >
                               {genre.toLowerCase()}
                             </label>
-                            <Input
-                              type="checkbox"
+                            <input
+                              type={'checkbox'}
                               className="form-control"
                               name={genre}
                               value={genre}

@@ -6,12 +6,19 @@ import { AuthService, GenreService } from '../../service';
 class Navigation extends Component {
   constructor(props) {
     super(props);
+    this.handleSearch = this.handleSearch.bind(this)
     this.state = {
       genres: [],
       user: undefined,
       accountButton: false,
     };
   }
+  handleSearch(e) {
+    e.preventDefault();
+    this.props.handleSetSearch(e.target[0].value);
+    this.props.history.push('/games/search')
+  }
+
   render() {
     return (
       <nav className={'navbar navbar-expand-lg navbar-dark bg-dark mb-1'}>
@@ -126,7 +133,7 @@ class Navigation extends Component {
                 )}
                 {this.state.accountButton && (
                   <li className={'nav-item px-2'}>
-                    <a
+                    <NavLink
                       href={'/login'}
                       onClick={this.logout}
                       activeClassName={'active'}
@@ -134,7 +141,7 @@ class Navigation extends Component {
                       to={`/user/${this.state.user.username}`}
                     >
                       Logout
-                    </a>
+                    </NavLink>
                   </li>
                 )}
               </ul>
@@ -177,7 +184,7 @@ class Navigation extends Component {
                   </div>
                 </li>
                 <li className={'nav-item'}>
-                  <form className={'form-inline my-2 my-lg-0'}>
+                  <form onSubmit={this.handleSearch} className={'form-inline my-2 my-lg-0'}>
                     <input
                       className={'form-control mr-sm-2'}
                       type={'search'}

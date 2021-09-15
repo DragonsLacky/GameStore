@@ -46,7 +46,7 @@ public class UserServiceImplementation implements UserService {
         Cart cart = cartRepository.save(new Cart());
         User user = new User(username, passwordEncoder.encode(password), email, cart, wishlist); 
         user.setRoles(roles);
-        userRepository.save(user);
+        user = userRepository.insert(user);
         return Optional.of(user);
     }
 
@@ -59,11 +59,11 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public Boolean existsByUsername(String username) {
-        return userRepository.findByUsername(username).map((item) -> true).orElseGet(() -> false);
+        return userRepository.findByUsername(username).isPresent();
     }
 
     @Override
     public Boolean existsByEmail(String email) {
-        return userRepository.findByEmail(email).map((item) -> true).orElseGet(() -> false);
+        return userRepository.findByEmail(email).isPresent();
     }
 }

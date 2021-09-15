@@ -7,6 +7,11 @@ const GameService = {
       headers: authHeader(),
     });
   },
+  fetchGamesBySearchTerm: (term) => {
+    return axios.get(`/game/search/${term}`, {
+      headers: authHeader(),
+  });
+  },
   fetchGamesAlphabetical: () => {
     return axios.get('/game', {
       headers: authHeader(),

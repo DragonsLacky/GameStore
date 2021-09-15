@@ -16,10 +16,6 @@ public interface PublisherService {
 
     public Optional<Publisher> addPublisher(PublisherDto publisherDto) throws UserNotFoundException;
 
-    public Optional<Publisher> addEditor(String publisherId, String username) throws UserNotFoundException, PublisherNotFoundException;
-
-    public Optional<Publisher> removeEditor(String publisherId, String username) throws UserNotFoundException, PublisherNotFoundException;
-
     public Optional<Publisher> editPublisher(String publisherId, PublisherDto publisherDto) throws UserNotFoundException, PublisherNotFoundException;
 
     public Optional<Boolean> removePublisher(String publisherId) throws UserNotFoundException, PublisherNotFoundException;

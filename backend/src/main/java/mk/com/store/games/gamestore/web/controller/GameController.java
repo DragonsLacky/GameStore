@@ -1,5 +1,6 @@
 package mk.com.store.games.gamestore.web.controller;
 
+import mk.com.store.games.gamestore.model.exception.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -9,10 +10,6 @@ import mk.com.store.games.gamestore.model.User;
 import mk.com.store.games.gamestore.model.dto.GameDto;
 import mk.com.store.games.gamestore.model.dto.UserSearchDto;
 import mk.com.store.games.gamestore.model.enumeration.ERole;
-import mk.com.store.games.gamestore.model.exception.DeveloperNotFoundException;
-import mk.com.store.games.gamestore.model.exception.GameNotFoundException;
-import mk.com.store.games.gamestore.model.exception.PublisherNotFoundException;
-import mk.com.store.games.gamestore.model.exception.UserNotFoundException;
 import mk.com.store.games.gamestore.repository.RoleRepository;
 import mk.com.store.games.gamestore.repository.UserRepository;
 import mk.com.store.games.gamestore.service.GameService;
@@ -47,12 +44,19 @@ public class GameController {
         return gameService.getAllGames();
     }
     
+    
+    
     @PreAuthorize("hasRole('USER') or hasRole('PUBLISHER') or hasRole('ADMIN')")
     @PostMapping("/owned")
     public List<Game> getUserGames(@RequestBody UserSearchDto userSearchDto) throws UserNotFoundException {
         return gameService.getAllGamesByUser(userSearchDto.getUsername());
     }
 
+    @GetMapping("/search/{term}")
+    public List<Game> searchGames(@PathVariable String term){
+        return gameService.searchByTitle(term);
+    }
+    
     @GetMapping("/genre/{genre}")
     public List<Game> getGamesByGenre(@PathVariable String genre){
         return gameService.getAllGamesByGenre(genre);
@@ -71,7 +75,7 @@ public class GameController {
 
     @PreAuthorize("hasRole('PUBLISHER') or hasRole('ADMIN')")
     @PostMapping("/add")
-    public ResponseEntity<Game> addGame(@RequestBody GameDto gameDto) throws PublisherNotFoundException, DeveloperNotFoundException {
+    public ResponseEntity<Game> addGame(@RequestBody GameDto gameDto) throws PublisherNotFoundException, DeveloperNotFoundException, UserNotFoundException, DeveloperNotContainedInPublisherException {
         return gameService.addGame(gameDto)
             .map(game -> ResponseEntity.ok().body(game))
             .orElseGet(() -> ResponseEntity.badRequest().build());
@@ -79,7 +83,7 @@ public class GameController {
 
     @PreAuthorize("hasRole('PUBLISHER') or hasRole('ADMIN')")
     @PutMapping("/edit/{gameId}")
-    public ResponseEntity<Game> editGame(@PathVariable String gameId,@RequestBody GameDto gameDto) throws PublisherNotFoundException, DeveloperNotFoundException, GameNotFoundException {
+    public ResponseEntity<Game> editGame(@PathVariable String gameId,@RequestBody GameDto gameDto) throws PublisherNotFoundException, DeveloperNotFoundException, GameNotFoundException, DeveloperNotContainedInPublisherException {
         return gameService.editGame(gameId,gameDto)
             .map(game -> ResponseEntity.ok().body(game))
             .orElseGet(() -> ResponseEntity.badRequest().build());

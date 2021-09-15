@@ -54,12 +54,14 @@ export default class Register extends Component {
     this.onChangeUsername = this.onChangeUsername.bind(this);
     this.onChangeEmail = this.onChangeEmail.bind(this);
     this.onChangePassword = this.onChangePassword.bind(this);
+    this.onChangeRole = this.onChangeRole.bind(this);
 
     this.state = {
       username: '',
       email: '',
       password: '',
       successful: false,
+      roles: [],
       message: '',
     };
   }
@@ -82,6 +84,18 @@ export default class Register extends Component {
     });
   }
 
+  onChangeRole(e) {
+    if (e.target.checked) {
+      this.setState({
+        roles: [...this.state.roles,e.target.value],
+      });
+    }else{
+      this.setState({
+        roles: this.state.roles.filter(v => v !== e.target.value)
+      })
+    }
+  }
+
   handleRegister(e) {
     e.preventDefault();
 
@@ -96,7 +110,8 @@ export default class Register extends Component {
       AuthService.register(
         this.state.username,
         this.state.email,
-        this.state.password
+        this.state.password,
+        this.state.roles
       ).then(
         (response) => {
           this.setState({
@@ -178,11 +193,44 @@ export default class Register extends Component {
                           validations={[required, vpassword]}
                         />
                       </div>
+                      <div className={'d-flex justify-content-around'}>
+                        <div className="form-group">
+                          <label htmlFor="roles">User</label>
+                          <input
+                              type="checkbox"
+                              className="form-control"
+                              name="roles"
+                              value="user"
+                              onChange={this.onChangeRole}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="roles">Publisher</label>
+                          <input
+                              type="checkbox"
+                              className="form-control"
+                              name="roles"
+                              value="mod"
+                              onChange={this.onChangeRole}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="roles">Admin</label>
+                          <input
+                              type="checkbox"
+                              className="form-control"
+                              name="roles"
+                              value="admin"
+                              onChange={this.onChangeRole}
+                          />
+                        </div>
+                        </div>
                       <div className="form-group">
                         <button className="btn btn-primary btn-block">
                           Register
                         </button>
                       </div>
+
                     </div>
                   )}
 

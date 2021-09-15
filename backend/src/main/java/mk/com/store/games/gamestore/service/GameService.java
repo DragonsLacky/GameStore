@@ -5,21 +5,21 @@ import java.util.Optional;
 
 import mk.com.store.games.gamestore.model.Game;
 import mk.com.store.games.gamestore.model.dto.GameDto;
-import mk.com.store.games.gamestore.model.exception.DeveloperNotFoundException;
-import mk.com.store.games.gamestore.model.exception.GameNotFoundException;
-import mk.com.store.games.gamestore.model.exception.PublisherNotFoundException;
-import mk.com.store.games.gamestore.model.exception.UserNotFoundException;
+import mk.com.store.games.gamestore.model.exception.*;
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
 
 
 public interface GameService {
     
     public List<Game> getAllGames();
     
-    public Optional<Game> addGame(GameDto gameDto) throws PublisherNotFoundException, DeveloperNotFoundException;
+    public List<Game> searchByTitle(String term);
+    
+    public Optional<Game> addGame(GameDto gameDto) throws PublisherNotFoundException, DeveloperNotFoundException, DeveloperNotContainedInPublisherException, UserNotFoundException;
 
     public List<Game> getAllGamesByUser(String username) throws UserNotFoundException;
 
-    public List<Game> getAllCreatedGamesByUser(String username) throws UserNotFoundException;
+    public List<Game> getAllCreatedGamesByUser(String username) throws UserNotFoundException, PublisherNotFoundException;
 
     public List<Game> getAllGamesByGenre(String genre);
 
@@ -27,5 +27,5 @@ public interface GameService {
 
     public Optional<Boolean> removeGame(String id) throws GameNotFoundException;
 
-    public Optional<Game> editGame(String gameId, GameDto gameDto) throws GameNotFoundException, DeveloperNotFoundException, PublisherNotFoundException;
+    public Optional<Game> editGame(String gameId, GameDto gameDto) throws GameNotFoundException, DeveloperNotFoundException, PublisherNotFoundException, DeveloperNotContainedInPublisherException;
 }

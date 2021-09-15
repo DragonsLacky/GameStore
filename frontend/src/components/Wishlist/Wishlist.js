@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { AuthService, CartService, WishlistService } from '../../service';
+import { AuthService, WishlistService } from '../../service';
 import WishlistGame from './WishlistGame';
 
 class Wishlist extends Component {

@@ -32,12 +32,13 @@ class App extends Component {
       publisher: {},
       user: {},
       genre: '',
+      search: ''
     };
   }
   render() {
     return (
       <div className="App container-fluid">
-        <Navigation handleGenreSelect={this.handleGenreSelect} />
+        <Navigation handleGenreSelect={this.handleGenreSelect} handleSetSearch={this.handleSetSearch} />
         <Switch>
           <Route path={'/game/add'}>
             <GameAdd
@@ -59,15 +60,23 @@ class App extends Component {
               handleGameSelect={this.handleGameSelect}
               display={'genre'}
               criteria={this.state.genre}
-            ></Games>
+            />
+          </Route>
+          <Route path="/games/search">
+            <Games
+                handleDevSelect={this.handleDevSelect}
+                handlePublisherSelect={this.handlePublisherSelect}
+                handleGameSelect={this.handleGameSelect}
+                display={'search'}
+                criteria={this.state.search}
+            />
           </Route>
           <Route path={'/games/:id'}>
             <GamePage
-              game={this.state.game}
-              handleGameSelect={this.handleGameSelect}
-              handleDevSelect={this.handleDevSelect}
-              handlePublisherSelect={this.handlePublisherSelect}
-              handleCa
+                game={this.state.game}
+                handleGameSelect={this.handleGameSelect}
+                handleDevSelect={this.handleDevSelect}
+                handlePublisherSelect={this.handlePublisherSelect}
             />
           </Route>
           <Route path={'/login'}>
@@ -163,6 +172,12 @@ class App extends Component {
       publisher: publisher,
     });
   };
+
+  handleSetSearch = (search) => {
+    this.setState({
+      search: search
+    })
+  }
 
   handleGenreSelect = (genre) => {
     this.setState({

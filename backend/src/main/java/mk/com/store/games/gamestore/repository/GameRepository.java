@@ -13,4 +13,5 @@ import mk.com.store.games.gamestore.model.enumeration.Genre;
 public interface GameRepository extends MongoRepository<Game, String> {
     List<Game> findByDeveloper(Developer developer);
     List<Game> findByGenres(Genre genres);
+    List<Game> findAllByTitleContainingIgnoreCase(String title);
 }
